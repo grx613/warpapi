@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Документация — WarpAPI</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;max-width:1080px;margin:0 auto;padding:24px;line-height:1.6;color:#111}
+    code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:10px;overflow:auto}
+    a{color:#0b57d0;text-decoration:none}
+    h1{margin:0 0 8px} h2{margin:22px 0 8px} h3{margin:18px 0 6px}
+    .muted{color:#555}
+    .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:2px 10px;margin-right:8px;color:#333}
+    .topnav{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:8px}
+  </style>
+</head>
+<body>
+  <div class="topnav">
+    <div><a href="/">← На главную</a></div>
+    <div>
+      <span class="pill">Base URL: https://api.warpapi.ru/v1</span>
+      <span class="pill">Поддержка: <a href="mailto:support@warpapi.ru">support@warpapi.ru</a></span>
+    </div>
+  </div>
+
+  <h1>Документация WarpAPI</h1>
+  <p class="muted">OpenAI‑совместимый API. Меняйте только baseURL и токен. Ниже — быстрое подключение и основные примеры.</p>
+
+  <h2>Аутентификация</h2>
+  <p>Передавайте ключ в заголовке Authorization.</p>
+  <pre>Authorization: Bearer sk-warpapi-xxx</pre>
+
+  <h2>Быстрый старт</h2>
+  <h3>JavaScript (Node)</h3>
+  <pre>import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: "sk-warpapi-xxx",
+  baseURL: "https://api.warpapi.ru/v1",
+});
+
+// Чат
+const chat = await client.chat.completions.create({
+  model: "deepseek-r1",
+  messages: [{ role: "user", content: "Дай интересный факт" }],
+  max_tokens: 50000
+});
+console.log(chat.choices[0]?.message);
+
+// Vision (картинка в чат)
+const photo = await client.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{
+    role: "user",
+    content: [
+      { type: "text", text: "Что на фото?" },
+      { type: "image_url", image_url: { url: "https://..." } }
+    ]
+  }],
+  max_tokens: 2000
+});</pre>
+
+  <h3>Python</h3>
+  <pre>from openai import OpenAI
+
+client = OpenAI(api_key="sk-warpapi-xxx", base_url="https://api.warpapi.ru/v1")
+
+resp = client.chat.completions.create(
+  model="gpt-5",
+  messages=[{"role":"user","content":"Привет! Что ты умеешь?"}],
+  max_tokens=2048
+)
+print(resp.choices[0].message)</pre>
+
+  <h2>Изображения</h2>
+  <pre>// Генерация изображения
+const gen = await client.images.generate({
+  model: "gpt-image-1",
+  prompt: "Нарисуй попугая в стиле минимализм",
+  size: "1024x1024"
+});</pre>
+
+  <h2>Речь</h2>
+  <h3>Text-to-Speech (TTS)</h3>
+  <pre>const mp3 = await client.audio.speech.create({
+  model: "gpt-4o-mini-tts",
+  input: "Привет! Как настроение?",
+  voice: "alloy",
+});</pre>
+
+  <h3>Распознавание речи (ASR)</h3>
+  <pre>import fs from "node:fs";
+const tr = await client.audio.transcriptions.create({
+  model: "whisper-1",
+  file: fs.createReadStream("audio.mp3"),
+});
+console.log(tr.text);</pre>
+
+  <h2>Embeddings</h2>
+  <pre>const emb = await client.embeddings.create({
+  model: "text-embedding-3-large",
+  input: "Привет, мир!",
+});
+console.log(emb.data[0].embedding.length);</pre>
+
+  <h2>Биллинг и статистика</h2>
+  <p>Эндпоинты для баланса и статистики (передавайте токен в Authorization):</p>
+  <pre>GET https://api.warpapi.ru/v1/warpapi/balance
+GET https://api.warpapi.ru/v1/warpapi/stats?period=30d</pre>
+
+  <h2>Параметр max_tokens</h2>
+  <p>Рекомендуется указывать max_tokens явно. Для reasoning‑моделей (например, r1/o‑серии) ставьте не меньше ~50 000, иначе возможен пустой ответ (все токены уйдут на «мысли»).</p>
+
+  <h2>Ошибки</h2>
+  <ul>
+    <li>401 — проверьте ключ и заголовок Authorization</li>
+    <li>402 — недостаточно средств (пополните баланс или уменьшите max_tokens)</li>
+    <li>429 — слишком много запросов (уменьшите частоту или увеличьте лимиты)</li>
+    <li>5xx — временная ошибка, повторите попытку (экспоненциальный бэкофф)</li>
+  </ul>
+
+  <h2>Модели</h2>
+  <p>Используйте имена моделей в точности как в примерах (например, gpt-5, gpt-4o, deepseek-r1, gemini-2.5-flash, claude-3.7-sonnet, text-embedding-3-large, gpt-image-1, whisper-1).</p>
+
+  <h2>Поддержка</h2>
+  <p>Пишите на <a href="mailto:support@warpapi.ru">support@warpapi.ru</a>.</p>
+
+  <hr>
+  <p class="muted">© 2025 WarpAPI</p>
+</body>
+</html>
