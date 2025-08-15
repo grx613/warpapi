@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WarpAPI — Доступ к OpenAI, Gemini, DeepSeek, Claude без VPN. Оплата в рублях.</title>
+  <meta name="description" content="OpenAI-совместимый API-провайдер: ChatGPT, Gemini, DeepSeek, Claude, Llama, Perplexity и др. Без VPN. Оплата в рублях. Простая интеграция через формат OpenAI."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0d12;
+      --bg-soft:#0f1219;
+      --card:#121622;
+      --muted:#9aa3b2;
+      --text:#eef2f7;
+      --brand:#5b8cff;
+      --brand-2:#7a5cff;
+      --ok:#14c38e;
+      --warn:#ffcc66;
+      --danger:#ff6b6b;
+      --ring: 0 0 0 6px rgba(91,140,255,.15);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:radial-gradient(1200px 800px at 80% -10%, rgba(91,140,255,.15), transparent 60%), var(--bg); color:var(--text); font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:var(--text); text-decoration:none}
+    .container{max-width:1160px;margin:0 auto;padding:0 20px}
+    header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(11,13,18,.9), rgba(11,13,18,.6)); backdrop-filter: blur(10px); border-bottom:1px solid rgba(255,255,255,.06)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+    .logo-badge{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-2)); display:grid;place-items:center; font-size:16px}
+    nav a{color:#cfd6e4}
+    .nav-links{display:flex;gap:18px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:10px;padding:11px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.08); background:linear-gradient(180deg,#1a2030,#121626); color:#eaf0ff; font-weight:600; transition:.16s}
+    .btn:hover{transform:translateY(-1px); box-shadow: var(--ring)}
+    .btn.primary{background:linear-gradient(90deg,var(--brand),var(--brand-2)); border:0}
+    .btn.ghost{background:transparent;border-color:rgba(255,255,255,.14)}
+    .hero{padding:64px 0 28px}
+    .hero h1{font-size:42px;line-height:1.08;margin:0 0 14px}
+    .hero p{color:var(--muted);font-size:18px;max-width:760px}
+    .hero-cta{display:flex;gap:12px;margin-top:22px;flex-wrap:wrap}
+    .strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .chip{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04); padding:8px 12px;border-radius:999px;color:#cdd6e6;font-size:13px}
+    section{padding:36px 0}
+    .grid{display:grid;gap:18px}
+    .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{background:linear-gradient(180deg,#111522,#0e121d); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); padding:18px}
+    .card h3{margin:0 0 8px}
+    .muted{color:var(--muted)}
+    .kpi{display:flex;gap:10px;align-items:center}
+    .kpi .dot{width:10px;height:10px;border-radius:999px;background:var(--ok);box-shadow:0 0 0 4px rgba(20,195,142,.18)}
+    .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px}
+    .step{background:linear-gradient(180deg,#101424,#0d101a);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px}
+    .step-num{width:28px;height:28px;border-radius:8px;background:rgba(91,140,255,.18);display:grid;place-items:center;color:#bcd0ff;font-weight:700;margin-bottom:10px}
+    .code{position:relative;background:#0b0f1a;border:1px solid rgba(255,255,255,.1); border-radius:14px;padding:14px;overflow:auto}
+    .code pre{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:13px;line-height:1.5; color:#e8efff}
+    .code .copy{position:absolute;top:10px;right:10px}
+    .model{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+    .badge{font-size:12px;color:#b7c2d9;border:1px solid rgba(255,255,255,.12);padding:4px 8px;border-radius:999px}
+    .price-line{display:flex;gap:10px;flex-wrap:wrap;color:#cdd6e6;font-size:14px}
+    .price-line b{color:#fff}
+    .table{overflow:auto;border:1px solid rgba(255,255,255,.09);border-radius:14px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.06); text-align:left}
+    th{color:#cbd6ea;font-weight:600;background:#101423;position:sticky;top:0}
+    .faq{display:grid;gap:12px}
+    details{background:#0e1320;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px}
+    summary{cursor:pointer;font-weight:600}
+    footer{padding:30px 0;border-top:1px solid rgba(255,255,255,.08);color:#aeb8cd}
+    @media (max-width:900px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} .steps{grid-template-columns:1fr} .hero h1{font-size:32px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="logo">
+        <div class="logo-badge">⚡</div>
+        <div>WarpAPI</div>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Особенности</a>
+        <a href="#how">Как начать</a>
+        <a href="#pricing">Цены</a>
+        <a href="#examples">Примеры</a>
+        <a href="#faq">FAQ</a>
+        <a class="btn ghost" href="#docs">Документация</a>
+        <a class="btn primary" href="#get-key">Получить API‑ключ</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="kpi"><span class="dot"></span><span>Онлайн · без VPN · оплата в ₽</span></div>
+      <h1>Доступ к OpenAI, Gemini, DeepSeek, Claude и Llama одним API</h1>
+      <p>OpenAI‑совместимый endpoint для чата, изображений, TTS, ASR и embeddings. Простая интеграция — меняете только baseURL и ключ. Прозрачные цены, высокая доступность и поддержка.</p>
+      <div class="hero-cta">
+        <a class="btn primary" href="#get-key">Получить API‑ключ</a>
+        <a class="btn" href="#examples">Смотреть примеры</a>
+      </div>
+      <div class="strip">
+        <span class="chip">Совместим с SDK OpenAI</span>
+        <span class="chip">Маршрутизация на OpenAI / Google / DeepSeek / Anthropic / Meta / Perplexity</span>
+        <span class="chip">Актуальные модели</span>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Простое подключение</h3>
+          <p class="muted">Используете клиент OpenAI — меняете только baseURL и токен. Модели других провайдеров работают по единой схеме.</p>
+        </div>
+        <div class="card">
+          <h3>Оплата в рублях</h3>
+          <p class="muted">Оплачивайте как физ. или юр. лицо. Возможны закрывающие документы и скидки при объёмах.</p>
+        </div>
+        <div class="card">
+          <h3>Широкий каталог моделей</h3>
+          <p class="muted">GPT‑5/4o/4.1, DeepSeek r1/chat, Gemini 2.5, Claude 3.7/4.x, Llama 3/4, Perplexity Sonar и др.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>Текст и чат</h3>
+          <p class="muted">Быстрые и рассуждающие модели, онлайн‑поиск, расширенный контекст.</p>
+        </div>
+        <div class="card">
+          <h3>Изображения</h3>
+          <p class="muted">Генерация и редактирование через gpt-image-1 и DALL·E 3/2, разные качества и размеры.</p>
+        </div>
+        <div class="card">
+          <h3>Речь и аудио</h3>
+          <p class="muted">TTS на базе 4o‑mini‑tts/tts‑1 и распознавание whisper‑1 и 4o‑transcribe.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="how">
+      <h2>Как это работает</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h4>Ваше приложение</h4>
+          <p class="muted">Любой код, фреймворк или сторонняя платформа (LangChain, n8n и пр.).</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h4>OpenAI‑формат запроса</h4>
+          <p class="muted">Chat Completions / Responses / Images / Audio — привычные payload’ы.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h4>WarpAPI маршрутизирует</h4>
+          <p class="muted">Мы отправим запрос к нужному провайдеру в зависимости от выбранной модели.</p>
+        </div>
+      </div>
+
+      <h2 style="margin-top:26px">Начало за 3 шага</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">A</div>
+          <h4>Получите API‑ключ</h4>
+          <p class="muted">Нажмите «Получить ключ» — мы мгновенно выдаём ключ и инструкции на e‑mail.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">B</div>
+          <h4>Укажите baseURL</h4>
+          <p class="muted">Используйте https://api.warpapi.ru/v1 как базовый адрес во всех SDK.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">C</div>
+          <h4>Выберите модель</h4>
+          <p class="muted">Например, gpt-5, deepseek-r1, gemini-2.5-flash, claude-3.7-sonnet и т. д.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <h2>Модели и ориентировочные цены</h2>
+      <p class="muted">Цены указаны за 1M токенов (ввод/вывод считаются отдельно). Для изображений — за рендер, для TTS — за символы, для ASR — за 60 сек аудио. Значения ниже носят демонстрационный характер — замените на ваши.</p>
+
+      <div class="table" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr>
+              <th>Модель</th>
+              <th>Провайдер</th>
+              <th>Ввод</th>
+              <th>Вывод</th>
+              <th>Примечания</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>gpt-5</td>
+              <td>OpenAI</td>
+              <td>от 25 ₽</td>
+              <td>от 1800 ₽</td>
+              <td>Рассуждения, длинный контекст</td>
+            </tr>
+            <tr>
+              <td>gpt-4o</td>
+              <td>OpenAI</td>
+              <td>от 220 ₽</td>
+              <td>от 1800 ₽</td>
+              <td>Мультимодальность, Vision</td>
+            </tr>
+            <tr>
+              <td>deepseek-r1</td>
+              <td>DeepSeek</td>
+              <td>от 90 ₽</td>
+              <td>от 390 ₽</td>
+              <td>Reasoning‑модель</td>
+            </tr>
+            <tr>
+              <td>gemini-2.5-flash</td>
+              <td>Google</td>
+              <td>от 54 ₽</td>
+              <td>от 450 ₽</td>
+              <td>Быстрая и экономичная</td>
+            </tr>
+            <tr>
+              <td>claude-3.7-sonnet</td>
+              <td>Anthropic</td>
+              <td>от 540 ₽</td>
+              <td>от 2700 ₽</td>
+              <td>Точность и инструкт‑следование</td>
+            </tr>
+            <tr>
+              <td>llama-3.3-70b-instruct</td>
+              <td>Meta</td>
+              <td>от 22 ₽</td>
+              <td>от 54 ₽</td>
+              <td>Открытая модель</td>
+            </tr>
+            <tr>
+              <td>sonar / sonar-pro</td>
+              <td>Perplexity</td>
+              <td>от 180 ₽</td>
+              <td>от 180–2700 ₽</td>
+              <td>Онлайн‑поиск (+ фикс. плата за запрос)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid cols-2" style="margin-top:18px">
+        <div class="card">
+          <h3>Изображения</h3>
+          <p class="muted">gpt-image-1, DALL·E 3/2 — выбирайте качество (low/medium/high) и размер (1024/1536/1792 и т. д.).</p>
+          <div class="price-line"><span>Примеры:</span><b>от 3 ₽</b> за рендер low 1024×1024 · <b>от 14 ₽</b> за medium · <b>от 56 ₽</b> за high</div>
+        </div>
+        <div class="card">
+          <h3>TTS / ASR</h3>
+          <p class="muted">4o‑mini‑tts, tts‑1/hd для синтеза речи; whisper‑1 и 4o‑transcribe для распознавания.</p>
+          <div class="price-line"><span>TTS:</span> <b>от 2700 ₽</b> / 1M символов · <span>ASR:</span> <b>от 0.54 ₽</b> / 60 сек</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="examples">
+      <h2>Примеры интеграции</h2>
+
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="model">
+            <h3>JS · Чат</h3>
+            <span class="badge">OpenAI SDK</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-chat">Копировать</button>
+            <pre id="code-js-chat">import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: "sk-warpapi-xxx",
+  baseURL: "https://api.warpapi.ru/v1",
+});
+
+const resp = await client.chat.completions.create({
+  model: "deepseek-r1",
+  messages: [{ role: "user", content: "Дай интересный факт" }],
+  max_tokens: 50000 // задайте явным параметром
+});
+
+console.log(resp.choices[0]?.message);</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>Python · Чат</h3>
+            <span class="badge">OpenAI SDK</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-py-chat">Копировать</button>
+            <pre id="code-py-chat">from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-warpapi-xxx",
+    base_url="https://api.warpapi.ru/v1",
+)
+
+resp = client.chat.completions.create(
+    model="gpt-5",
+    messages=[{"role": "user", "content": "Привет! Что ты умеешь?"}],
+    max_tokens=2048
+)
+
+print(resp.choices[0].message)</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>JS · Vision (картинка в чат)</h3>
+            <span class="badge">gpt-4o</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-vision">Копировать</button>
+            <pre id="code-js-vision">const photo = await client.chat.completions.create({
+  model: "gpt-4o",
+  messages: [{
+    role: "user",
+    content: [
+      { type: "text", text: "Что на фото?" },
+      { type: "image_url", image_url: { url: "https://..." } },
+    ]
+  }],
+  max_tokens: 2000
+});</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>JS · Генерация изображений</h3>
+            <span class="badge">gpt-image-1</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-img">Копировать</button>
+            <pre id="code-js-img">const gen = await client.images.generate({
+  model: "gpt-image-1",
+  prompt: "Нарисуй попугая в стиле минимализм",
+  size: "1024x1024"
+});
+
+// base64 -> файл
+import fs from "node:fs";
+fs.writeFileSync("img.png", Buffer.from(gen.data[0].b64_json, "base64"));</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>JS · TTS</h3>
+            <span class="badge">4o-mini-tts</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-tts">Копировать</button>
+            <pre id="code-js-tts">const mp3 = await client.audio.speech.create({
+  model: "gpt-4o-mini-tts",
+  input: "Привет! Как настроение?",
+  voice: "alloy",
+});
+import fs from "node:fs";
+const buf = Buffer.from(await mp3.arrayBuffer());
+await fs.promises.writeFile("speech.mp3", buf);</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>JS · Распознавание речи</h3>
+            <span class="badge">whisper-1</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-asr">Копировать</button>
+            <pre id="code-js-asr">import fs from "node:fs";
+
+const tr = await client.audio.transcriptions.create({
+  model: "whisper-1",
+  file: fs.createReadStream("audio.mp3"),
+});
+
+console.log(tr.text);</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>JS · Embeddings</h3>
+            <span class="badge">text-embedding-3-large</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-js-emb">Копировать</button>
+            <pre id="code-js-emb">const emb = await client.embeddings.create({
+  model: "text-embedding-3-large",
+  input: "Привет, мир!",
+});
+
+console.log(emb.data[0].embedding.length);</pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="model">
+            <h3>HTTP · Баланс и статистика</h3>
+            <span class="badge">REST</span>
+          </div>
+          <div class="code">
+            <button class="btn copy" data-copy="#code-curl">Копировать</button>
+            <pre id="code-curl">curl -s https://api.warpapi.ru/v1/warpapi/balance \
+  -H "Authorization: Bearer sk-warpapi-xxx"
+
+curl -s "https://api.warpapi.ru/v1/warpapi/stats?period=30d" \
+  -H "Authorization: Bearer sk-warpapi-xxx"</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2>FAQ</h2>
+      <div class="faq">
+        <details>
+          <summary>Работаете с юрлицами? Нужны документы.</summary>
+          <div class="muted">Да. Счёт на оплату, акт/УПД, ЭДО и индивидуальные условия при больших объёмах.</div>
+        </details>
+        <details>
+          <summary>Что такое max_tokens и почему важен?</summary>
+          <div class="muted">max_tokens ограничивает длину ответа. Мы резервируем средства по ожидаемому максимуму — это помогает предсказать стоимость. Для reasoning‑моделей (например, r1/o‑серии) выставляйте не меньше ~50 000, чтобы не получить пустой ответ.</div>
+        </details>
+        <details>
+          <summary>Есть ли лимиты по запросам?</summary>
+          <div class="muted">Лимиты масштабируются от вашего тарифа/баланса. При необходимости повышаем: напишите нам.</div>
+        </details>
+        <details>
+          <summary>Можно ли использовать в n8n / LangChain?</summary>
+          <div class="muted">Да. Выберите OpenAI, укажите наш токен и baseURL https://api.warpapi.ru/v1. В LangChain — задайте OpenAICompatible client.</div>
+        </details>
+      </div>
+    </section>
+
+    <section id="get-key">
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>Готовы начать?</h3>
+          <p class="muted">Получите API‑ключ и документацию на e‑mail. Никакой регистрации на сайте — всё просто.</p>
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap">
+            <a class="btn primary" href="mailto:sales@warpapi.ru?subject=API%20ключ&body=Здравствуйте! Хочу получить ключ и документацию.">Получить ключ по e‑mail</a>
+            <a class="btn" href="https://t.me/warpapi_support" target="_blank">Написать в Telegram</a>
+          </div>
+        </div>
+        <div class="card">
+          <h3 id="docs">Документация</h3>
+          <p class="muted">Подробные гайды, модели, коды ошибок и лимиты.</p>
+          <div style="margin-top:12px">
+            <a class="btn ghost" href="https://docs.warpapi.ru" target="_blank">Открыть документацию</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container" style="display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:center">
+      <div>© 2025 WarpAPI · <a href="/terms.pdf">Пользовательское соглашение</a> · <a href="/privacy.pdf">Политика конфиденциальности</a></div>
+      <div style="display:flex;gap:14px;align-items:center">
+        <a href="https://t.me/warpapi_support" target="_blank">Telegram</a>
+        <a href="mailto:support@warpapi.ru">support@warpapi.ru</a>
+        <a href="https://status.warpapi.ru" target="_blank">Статус</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Копирование кода
+    document.querySelectorAll(".btn.copy").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const sel = btn.getAttribute("data-copy");
+        const pre = document.querySelector(sel);
+        if(!pre) return;
+        const text = pre.innerText;
+        navigator.clipboard.writeText(text).then(()=>{
+          const prev = btn.textContent;
+          btn.textContent = "Скопировано ✓";
+          setTimeout(()=>btn.textContent = prev, 1400);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
